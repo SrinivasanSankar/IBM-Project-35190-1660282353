@@ -1,0 +1,282 @@
+{&quot;metadata&quot;:{&quot;kernelspec&quot;:{&quot;language&quot;:&quot;python&quot;,&quot;display_name&quot;:&quot;Python
+3&quot;,&quot;name&quot;:&quot;python3&quot;},&quot;language_info&quot;:{&quot;name&quot;:&quot;python&quot;,&quot;version&quot;:&quot;3.7.10&quot;,&quot;mimetype&quot;:&quot;text/x-
+python&quot;,&quot;codemirror_mode&quot;:{&quot;name&quot;:&quot;ipython&quot;,&quot;version&quot;:3},&quot;pygments_lexer&quot;:&quot;ipython3&quot;,&quot;nbconv
+ert_exporter&quot;:&quot;python&quot;,&quot;file_extension&quot;:&quot;.py&quot;}},&quot;nbformat_minor&quot;:4,&quot;nbformat&quot;:4,&quot;cells&quot;:[{&quot;cell_typ
+e&quot;:&quot;markdown&quot;,&quot;source&quot;:&quot;# ****Spam Message Classification using
+LSTM****&quot;,&quot;metadata&quot;:{}},{&quot;cell_type&quot;:&quot;markdown&quot;,&quot;source&quot;:&quot;## 1.Import the Necessary
+Libraries&quot;,&quot;metadata&quot;:{}},{&quot;cell_type&quot;:&quot;code&quot;,&quot;source&quot;:&quot;import numpy as np\nimport pandas as
+pd\nimport os\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n%matplotlib inline\nfor
+dirname, _, filenames in os.walk(&#39;/kaggle/input&#39;):\n for filename in filenames:\n
+print(os.path.join(dirname, filename))\n&quot;,&quot;metadata&quot;:{&quot;execution&quot;:{&quot;iopub.status.busy&quot;:&quot;2022-10-
+24T19:10:02.239872Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:02.240492Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:03.096453Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:02.240435Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:03.095272Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:2,&quot;outputs&quot;:[{&quot;name&quot;:&quot;stdout&quot;,&quot;text&quot;:&quot;/k
+aggle/input/sms-spam-collection-
+dataset/spam.csv\n&quot;,&quot;output_type&quot;:&quot;stream&quot;}]},{&quot;cell_type&quot;:&quot;markdown&quot;,&quot;source&quot;:&quot;****2. Reading
+the .csv
+dataset****&quot;,&quot;metadata&quot;:{}},{&quot;cell_type&quot;:&quot;code&quot;,&quot;source&quot;:&quot;data=pd.read_csv(\&quot;../input/sms-spam-
+collection-
+dataset/spam.csv\&quot;,encoding=\&quot;latin\&quot;)\ndata.head()&quot;,&quot;metadata&quot;:{&quot;execution&quot;:{&quot;iopub.status.busy&quot;
+:&quot;2022-10-24T19:10:03.098112Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:03.098765Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:03.176425Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:03.098714Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:03.175300Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:3,&quot;outputs&quot;:[{&quot;execution_count&quot;:3,&quot;outp
+ut_type&quot;:&quot;execute_result&quot;,&quot;data&quot;:{&quot;text/plain&quot;:&quot; v1 v2 Unnamed: 2
+\\\n0 ham Go until jurong point, crazy.. Available only ... NaN \n1 ham Ok lar...
+Joking wif u oni... NaN \n2 spam Free entry in 2 a wkly comp to win FA Cup fina... NaN
+\n3 ham U dun say so early hor... U c already then say... NaN \n4 ham Nah I don&#39;t think he
+goes to usf, he lives aro... NaN \n\n Unnamed: 3 Unnamed: 4 \n0 NaN NaN \n1
+NaN NaN \n2 NaN NaN \n3 NaN NaN \n4 NaN NaN
+&quot;,&quot;text/html&quot;:&quot;&lt;div&gt;\n&lt;style scoped&gt;\n .dataframe tbody tr th:only-of-type {\n vertical-align:
+middle;\n }\n\n .dataframe tbody tr th {\n vertical-align: top;\n }\n\n .dataframe thead th
+{\n text-align: right;\n }\n&lt;/style&gt;\n&lt;table border=\&quot;1\&quot; class=\&quot;dataframe\&quot;&gt;\n &lt;thead&gt;\n
+&lt;tr style=\&quot;text-align: right;\&quot;&gt;\n &lt;th&gt;&lt;/th&gt;\n &lt;th&gt;v1&lt;/th&gt;\n &lt;th&gt;v2&lt;/th&gt;\n
+&lt;th&gt;Unnamed: 2&lt;/th&gt;\n &lt;th&gt;Unnamed: 3&lt;/th&gt;\n &lt;th&gt;Unnamed: 4&lt;/th&gt;\n &lt;/tr&gt;\n
+&lt;/thead&gt;\n &lt;tbody&gt;\n &lt;tr&gt;\n &lt;th&gt;0&lt;/th&gt;\n &lt;td&gt;ham&lt;/td&gt;\n &lt;td&gt;Go until jurong point,
+crazy.. Available only ...&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n &lt;/tr&gt;\n
+&lt;tr&gt;\n &lt;th&gt;1&lt;/th&gt;\n &lt;td&gt;ham&lt;/td&gt;\n &lt;td&gt;Ok lar... Joking wif u oni...&lt;/td&gt;\n
+&lt;td&gt;NaN&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n &lt;/tr&gt;\n &lt;tr&gt;\n &lt;th&gt;2&lt;/th&gt;\n
+&lt;td&gt;spam&lt;/td&gt;\n &lt;td&gt;Free entry in 2 a wkly comp to win FA Cup fina...&lt;/td&gt;\n
+&lt;td&gt;NaN&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n &lt;/tr&gt;\n &lt;tr&gt;\n &lt;th&gt;3&lt;/th&gt;\n
+&lt;td&gt;ham&lt;/td&gt;\n &lt;td&gt;U dun say so early hor... U c already then say...&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n
+&lt;td&gt;NaN&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n &lt;/tr&gt;\n &lt;tr&gt;\n &lt;th&gt;4&lt;/th&gt;\n &lt;td&gt;ham&lt;/td&gt;\n
+&lt;td&gt;Nah I don&#39;t think he goes to usf, he lives aro...&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n &lt;td&gt;NaN&lt;/td&gt;\n
+&lt;td&gt;NaN&lt;/td&gt;\n &lt;/tr&gt;\n
+&lt;/tbody&gt;\n&lt;/table&gt;\n&lt;/div&gt;&quot;},&quot;metadata&quot;:{}}]},{&quot;cell_type&quot;:&quot;code&quot;,&quot;source&quot;:&quot;data.columns&quot;,&quot;metad
+
+ata&quot;:{&quot;execution&quot;:{&quot;iopub.status.busy&quot;:&quot;2022-10-
+24T19:10:03.178761Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:03.179533Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:03.187473Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:03.179482Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:03.186504Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:4,&quot;outputs&quot;:[{&quot;execution_count&quot;:4,&quot;outp
+ut_type&quot;:&quot;execute_result&quot;,&quot;data&quot;:{&quot;text/plain&quot;:&quot;Index([&#39;v1&#39;, &#39;v2&#39;, &#39;Unnamed: 2&#39;, &#39;Unnamed: 3&#39;,
+&#39;Unnamed: 4&#39;], dtype=&#39;object&#39;)&quot;},&quot;metadata&quot;:{}}]},{&quot;cell_type&quot;:&quot;markdown&quot;,&quot;source&quot;:&quot;****3. Drop
+the unnamed
+Columns****&quot;,&quot;metadata&quot;:{}},{&quot;cell_type&quot;:&quot;code&quot;,&quot;source&quot;:&quot;data=data.drop(columns=[\&quot;Unnamed:
+2\&quot;,\&quot;Unnamed: 3\&quot;,\&quot;Unnamed: 4\&quot;])&quot;,&quot;metadata&quot;:{&quot;execution&quot;:{&quot;iopub.status.busy&quot;:&quot;2022-10-
+24T19:10:03.189783Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:03.190917Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:03.200280Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:03.190612Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:03.199069Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:5,&quot;outputs&quot;:[]},{&quot;cell_type&quot;:&quot;markdown&quot;,
+&quot;source&quot;:&quot;****4. Renaming Column names
+sensible****&quot;,&quot;metadata&quot;:{}},{&quot;cell_type&quot;:&quot;code&quot;,&quot;source&quot;:&quot;data=data.rename(\n{\n
+\&quot;v1\&quot;:\&quot;Category\&quot;,\n \&quot;v2\&quot;:\&quot;Message\&quot;\n},\n
+axis=1\n)&quot;,&quot;metadata&quot;:{&quot;execution&quot;:{&quot;iopub.status.busy&quot;:&quot;2022-10-
+24T19:10:03.201564Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:03.201941Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:03.214540Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:03.201904Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:03.213334Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:6,&quot;outputs&quot;:[]},{&quot;cell_type&quot;:&quot;code&quot;,&quot;sourc
+e&quot;:&quot;data.head()&quot;,&quot;metadata&quot;:{&quot;execution&quot;:{&quot;iopub.status.busy&quot;:&quot;2022-10-
+24T19:10:03.218668Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:03.219672Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:03.233081Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:03.219616Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:03.231569Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:7,&quot;outputs&quot;:[{&quot;execution_count&quot;:7,&quot;outp
+ut_type&quot;:&quot;execute_result&quot;,&quot;data&quot;:{&quot;text/plain&quot;:&quot; Category Message\n0
+ham Go until jurong point, crazy.. Available only ...\n1 ham Ok lar... Joking wif u
+oni...\n2 spam Free entry in 2 a wkly comp to win FA Cup fina...\n3 ham U dun say so early
+hor... U c already then say...\n4 ham Nah I don&#39;t think he goes to usf, he lives
+aro...&quot;,&quot;text/html&quot;:&quot;&lt;div&gt;\n&lt;style scoped&gt;\n .dataframe tbody tr th:only-of-type {\n vertical-
+align: middle;\n }\n\n .dataframe tbody tr th {\n vertical-align: top;\n }\n\n .dataframe
+thead th {\n text-align: right;\n }\n&lt;/style&gt;\n&lt;table border=\&quot;1\&quot; class=\&quot;dataframe\&quot;&gt;\n
+&lt;thead&gt;\n &lt;tr style=\&quot;text-align: right;\&quot;&gt;\n &lt;th&gt;&lt;/th&gt;\n &lt;th&gt;Category&lt;/th&gt;\n
+&lt;th&gt;Message&lt;/th&gt;\n &lt;/tr&gt;\n &lt;/thead&gt;\n &lt;tbody&gt;\n &lt;tr&gt;\n &lt;th&gt;0&lt;/th&gt;\n &lt;td&gt;ham&lt;/td&gt;\n
+&lt;td&gt;Go until jurong point, crazy.. Available only ...&lt;/td&gt;\n &lt;/tr&gt;\n &lt;tr&gt;\n &lt;th&gt;1&lt;/th&gt;\n
+&lt;td&gt;ham&lt;/td&gt;\n &lt;td&gt;Ok lar... Joking wif u oni...&lt;/td&gt;\n &lt;/tr&gt;\n &lt;tr&gt;\n &lt;th&gt;2&lt;/th&gt;\n
+&lt;td&gt;spam&lt;/td&gt;\n &lt;td&gt;Free entry in 2 a wkly comp to win FA Cup fina...&lt;/td&gt;\n &lt;/tr&gt;\n &lt;tr&gt;\n
+&lt;th&gt;3&lt;/th&gt;\n &lt;td&gt;ham&lt;/td&gt;\n &lt;td&gt;U dun say so early hor... U c already then say...&lt;/td&gt;\n
+&lt;/tr&gt;\n &lt;tr&gt;\n &lt;th&gt;4&lt;/th&gt;\n &lt;td&gt;ham&lt;/td&gt;\n &lt;td&gt;Nah I don&#39;t think he goes to usf, he lives
+aro...&lt;/td&gt;\n &lt;/tr&gt;\n
+&lt;/tbody&gt;\n&lt;/table&gt;\n&lt;/div&gt;&quot;},&quot;metadata&quot;:{}}]},{&quot;cell_type&quot;:&quot;markdown&quot;,&quot;source&quot;:&quot;****5. Check for
+null values in
+
+dataset****&quot;,&quot;metadata&quot;:{}},{&quot;cell_type&quot;:&quot;code&quot;,&quot;source&quot;:&quot;data.isnull().sum()&quot;,&quot;metadata&quot;:{&quot;executi
+on&quot;:{&quot;iopub.status.busy&quot;:&quot;2022-10-24T19:10:03.235631Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:03.236080Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:03.249179Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:03.236033Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:03.248321Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:8,&quot;outputs&quot;:[{&quot;execution_count&quot;:8,&quot;outp
+ut_type&quot;:&quot;execute_result&quot;,&quot;data&quot;:{&quot;text/plain&quot;:&quot;Category 0\nMessage 0\ndtype:
+int64&quot;},&quot;metadata&quot;:{}}]},{&quot;cell_type&quot;:&quot;code&quot;,&quot;source&quot;:&quot;data.info()&quot;,&quot;metadata&quot;:{&quot;execution&quot;:{&quot;iopub.
+status.busy&quot;:&quot;2022-10-24T19:10:03.252620Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:03.253279Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:03.292918Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:03.253229Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:03.291720Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:9,&quot;outputs&quot;:[{&quot;name&quot;:&quot;stdout&quot;,&quot;text&quot;:&quot;&lt;cl
+ass &#39;pandas.core.frame.DataFrame&#39;&gt;\nRangeIndex: 5572 entries, 0 to 5571\nData columns (total 2
+columns):\n # Column Non-Null Count Dtype \n--- ------ -------------- ----- \n 0 Category 5572
+non-null object\n 1 Message 5572 non-null object\ndtypes: object(2)\nmemory usage: 87.2+
+KB\n&quot;,&quot;output_type&quot;:&quot;stream&quot;}]},{&quot;cell_type&quot;:&quot;markdown&quot;,&quot;source&quot;:&quot;****6.Creating a new Field to
+store the Message Lengths****&quot;,&quot;metadata&quot;:{}},{&quot;cell_type&quot;:&quot;code&quot;,&quot;source&quot;:&quot;data[\&quot;Message
+Length\&quot;]=data[\&quot;Message\&quot;].apply(len)&quot;,&quot;metadata&quot;:{&quot;execution&quot;:{&quot;iopub.status.busy&quot;:&quot;2022-10-
+24T19:10:03.295879Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:03.296745Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:03.306522Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:03.296691Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:03.305269Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:10,&quot;outputs&quot;:[]},{&quot;cell_type&quot;:&quot;markdown&quot;
+,&quot;source&quot;:&quot;****7. Histogram Inference of Message Lengths of Spam and Non-spam
+messages****&quot;,&quot;metadata&quot;:{}},{&quot;cell_type&quot;:&quot;code&quot;,&quot;source&quot;:&quot;fig=plt.figure(figsize=(12,8))\nsns.histpl
+ot(\n x=data[\&quot;Message Length\&quot;],\n hue=data[\&quot;Category\&quot;]\n)\nplt.title(\&quot;ham &amp; spam
+messege length comparision\&quot;)\nplt.show()&quot;,&quot;metadata&quot;:{&quot;execution&quot;:{&quot;iopub.status.busy&quot;:&quot;2022-
+10-24T19:10:03.308175Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-10-
+24T19:10:03.308832Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-10-
+24T19:10:04.060142Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-10-
+24T19:10:03.308780Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-10-
+24T19:10:04.059065Z&quot;},&quot;trusted&quot;:true},&quot;execution_count&quot;:11,&quot;outputs&quot;:[{&quot;output_type&quot;:&quot;display_da
+ta&quot;,&quot;data&quot;:{&quot;text/plain&quot;:&quot;&lt;Figure size 864x576 with 1
+Axes&gt;&quot;,&quot;image/png&quot;:&quot;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
+77733ucwcsnx7vw7TI0eO5J577untMiRJkrSai4iZbbU7zEOSJEmqyTAtSZIk1WSYliRJkmrq12OmJUmS1P
+0WL15MS0sLixYt6u1SetygQYMYPnw4AwcO7NT6hmlJkiS9SUtLCxtttBEjR44kInq7nB6TmTz//PO0tLQw
+atSoTm3jMA9JkiS9yaJFi9hss83WqCANEBFsttlmXeqRN0xLkiRpBWtakG7V1eM2TEuSJKm2Z555hiOPPJ
+J3vOMd7LLLLuy///78z//8T5vrzps3j5/+9Kc9XGFzGaYlSZJUS2bykY98hL333pvHHnuMe++9l+985zs8++y
+zba7fU2F6yZIlTX+PVoZpSZIk1XLbbbcxcOBAPvnJTy5r22GHHdhpp53Yd9992XnnnRk9ejTXXHMNAKecc
+gqPPfYYO+64IyeffDIA3//+99l1113ZfvvtOe2005bt51vf+hbbbrste+21F0cddRQ/+MEPAHjggQfYfffd2X7
+77fnIRz7Ciy++CMDee+/NSSedxJgxYzjjjDMYNWoUixcvBuCll15603x38m4ekiRJqmXq1KnssssuK7QPGjSI
+q6++mre85S0899xz7L777hx00EF897vfZerUqTzwwAMA3HzzzTz66KPcddddZCYHHXQQf/jDH1hvvfW4
+6qqrePDBB1m8eDE777zzsvc55phj+MlPfsL73/9+/umf/olvfOMb/PCHPwTgtdde45577gFgxowZ/OY3v+
+Hggw/msssu45BDDun07e66wjAtSZKkbpWZfO1rX+MPf/gDAwYMYPbs2W0O/bj55pu5+eab2WmnnQB
+YuHAhjz76KAsWLGD8+PEMGjSIQYMGceCBBwIwf/585s2bx/vf/34AJkyYwGGHHbZsf0ccccSy6Y9//ON8
+73vf4+CDD+aCCy7g3HPPbcqxGqYlSZJUy3vf+16uvPLKFdovueQS5s6dy7333svAgQMZOXJkm7eby0y++t
+Wv8olPfOJN7a09zV21wQYbLJvec889mTFjBr/73e9YunQp2223Xa19roxjpiVJklTLPvvsw6uvvsqkSZOWt
+T300EPMnDmTzTffnIEDB3Lbbbcxc+ZMADbaaCMWLFiwbN2xY8dy/vnns3DhQgBmz57NnDlz2HPPPbn
+uuutYtGgRCxcu5Prrrwdg4403ZpNNNuGPf/wjABdddNGyXuq2HHPMMfz93/89xx13XLcfeyt7piVJklRLR
+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
